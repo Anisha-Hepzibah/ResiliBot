@@ -1,0 +1,17 @@
+{
+  "nickname": "jj",
+  "ref": "7fafb816",
+  "chat_history": [
+    [
+      "I can't concentrate",
+      "I'm here for you. Would you like to try a simple activity like breathing, grounding, or gratitude journaling to ease your mind? Please type which one you'd like to start with.",
+      "neutral"
+    ]
+  ],
+  "emotion_log": [
+    {
+      "emotion": "neutral",
+      "score": 0.0
+    }
+  ]
+}

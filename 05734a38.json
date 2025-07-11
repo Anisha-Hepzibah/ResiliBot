@@ -1,0 +1,107 @@
+{
+  "nickname": "Ann",
+  "ref": "05734a38",
+  "chat_history": [
+    [
+      "I feel blue",
+      "Feeling empty is tough. Can you talk about what's been on your mind?",
+      "neutral"
+    ],
+    [
+      "I am depressed",
+      "For a diagnosis of depression, a person needs to have experienced low mood or loss of interest or pleasure in life for at least 2 weeks. Also, they will have experienced the following symptoms: feelings of sadness, hopelessness, or irritability nearly every day.",
+      "negative"
+    ],
+    [
+      "I am hopeless every day. What do I do?",
+      "Taking the first step to talk about how you feel is a brave choice. I'm here to support you.",
+      "negative"
+    ],
+    [
+      "Who created you",
+      "I'm Pandora, here to provide support and guidance on your emotional journey.",
+      "neutral"
+    ],
+    [
+      "I am pathetic",
+      "Feeling worthless is tough, but it doesn't define you. You are so much more.",
+      "negative"
+    ],
+    [
+      "I am a failure",
+      "When we feel worthless, it can help to focus on things we're grateful for. Is there something you're thankful for today?",
+      "negative"
+    ],
+    [
+      "You",
+      "Alrighty then!",
+      "neutral"
+    ],
+    [
+      "I am ecstatic",
+      "Understood. Is there something you'd like to know more about?",
+      "positive"
+    ],
+    [
+      "How are you so helpful",
+      "I'm Pandora, your virtual therapist. Let's talk about how you're feeling.",
+      "positive"
+    ],
+    [
+      "I fel blu",
+      "I'm delighted to hear that! What's putting a smile on your face?",
+      "neutral"
+    ],
+    [
+      "I feels",
+      "Hi, it's great to meet you. How are you feeling?",
+      "neutral"
+    ]
+  ],
+  "emotion_log": [
+    {
+      "emotion": "neutral",
+      "score": 0.0
+    },
+    {
+      "emotion": "negative",
+      "score": -0.5106
+    },
+    {
+      "emotion": "negative",
+      "score": -0.4588
+    },
+    {
+      "emotion": "neutral",
+      "score": 0.25
+    },
+    {
+      "emotion": "negative",
+      "score": -0.5719
+    },
+    {
+      "emotion": "negative",
+      "score": -0.5106
+    },
+    {
+      "emotion": "neutral",
+      "score": 0.0
+    },
+    {
+      "emotion": "positive",
+      "score": 0.5106
+    },
+    {
+      "emotion": "positive",
+      "score": 0.5598
+    },
+    {
+      "emotion": "neutral",
+      "score": 0.0
+    },
+    {
+      "emotion": "neutral",
+      "score": 0.0
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "nickname": "hh",
+  "ref": "97625786",
+  "chat_history": [
+    [
+      "My concentration is bad",
+      "Try the Pomodoro method: 25 minutes study, 5 minutes break. Want to start one cycle?",
+      "negative"
+    ],
+    [
+      "I'm feeling homesick",
+      "Plan a small ritual like cooking a familiar meal or calling a loved one tonight.",
+      "neutral"
+    ]
+  ],
+  "emotion_log": [
+    {
+      "emotion": "negative",
+      "score": -0.5423
+    },
+    {
+      "emotion": "neutral",
+      "score": -0.0516
+    }
+  ]
+}

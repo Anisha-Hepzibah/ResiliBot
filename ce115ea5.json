@@ -1,0 +1,35 @@
+{
+  "nickname": "Ann",
+  "ref": "ce115ea5",
+  "chat_history": [
+    [
+      "i can't focus",
+      "Taking care of yourself is important. How about some advice on self-care?",
+      "neutral"
+    ],
+    [
+      "i can't concentrate",
+      "Step one, set a phone-free zone for one hour right before you go to sleep. This means no scrolling, no messages, no calls, and no social media. By doing this, you eliminate at least 80% of the distractions. Step two, sit with yourself Get yourself in silence for 10 minutes and focus on your breath. This will naturally calm your mind. Three, pick a book and read a minimum of 10 pages before you go to sleep, and I've given you seven book recommendations in the caption. Four, take a journal and write five things you're grateful for. This will put you in a high vibrational state and also train your mind to see the good in everything.",
+      "neutral"
+    ],
+    [
+      "My concentration is bad",
+      "It's okay to feel sad sometimes. Can you share what's on your mind?",
+      "negative"
+    ]
+  ],
+  "emotion_log": [
+    {
+      "emotion": "neutral",
+      "score": 0.0
+    },
+    {
+      "emotion": "neutral",
+      "score": 0.0
+    },
+    {
+      "emotion": "negative",
+      "score": -0.5423
+    }
+  ]
+}
