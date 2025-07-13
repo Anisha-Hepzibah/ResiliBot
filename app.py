@@ -1,5 +1,8 @@
 import sys
 print("Python version in Streamlit Cloud:", sys.version)
+
+print("Python version:", sys.version)
+
 import streamlit as st
 import json
 import uuid
