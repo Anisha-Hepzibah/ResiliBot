@@ -1,44 +1,39 @@
-import sys
-print("Python version in Streamlit Cloud:", sys.version)
-
-print("Python version:", sys.version)
-
 import streamlit as st
 import json
 import uuid
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 import nltk
-import tempfile
 from nltk.sentiment import SentimentIntensityAnalyzer
-from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.text import tokenizer_from_json  
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.preprocessing.text import tokenizer_from_json
+from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
-import random
-import base64
+import os
 
-# Download required NLTK data
+
+# --- Setup: Emotion model ---
 nltk.download("vader_lexicon")
 sia = SentimentIntensityAnalyzer()
 
-# Load ML components
+# --- Load model and encoders ---
 model = load_model("trained_modelrev.h5")
-#model = load_model("converted_model.h5")
-
-
-with open("tokenizerrev.json") as f:
-    tokenizer = tokenizer_from_json(f.read())
 
 with open("label_encoderrev.json") as f:
-    data = json.load(f)
+    label_data = json.load(f)
 lbl_encoder = LabelEncoder()
-lbl_encoder.classes_ = np.array(data["classes"])
+lbl_encoder.classes_ = np.array(label_data["classes"])
+
+with open("tokenizerrev.json") as f:
+    tokenizer_json = f.read()
+tokenizer = tokenizer_from_json(tokenizer_json)
 
 with open("MHResilience.json") as f:
     intents = json.load(f)
-
 responses = {i["tag"]: i.get("responses", i.get("response")) for i in intents["intents"]}
+
+# --- Constants ---
 max_len = 20
 padding_type = 'post'
 
@@ -58,25 +53,67 @@ fallback_tags = {
     "done with grounding 5": "resilience_grounding_end"
 }
 
-# Initialize session state
-if "chat_log" not in st.session_state:
-    st.session_state.chat_log = []
-
-if "emotion_log" not in st.session_state:
-    st.session_state.emotion_log = []
-
+# --- Emotion Detection ---
 def detect_emotion(text):
-    score = sia.polarity_scores(text)["compound"]
-    if score >= 0.3:
-        return "positive", score
-    elif score <= -0.2:
-        return "negative", score
+    score = sia.polarity_scores(text)
+    compound = score["compound"]
+    if compound >= 0.3:
+        emotion = "positive"
+    elif compound <= -0.2:
+        emotion = "negative"
     else:
-        return "neutral", score
+        emotion = "neutral"
+    return emotion, compound
 
-def chat(user_input):
+# --- User Session Setup ---
+def get_user_session():
+    if "user_data" not in st.session_state:
+        st.session_state.user_data = {}
+
+    user_data = st.session_state.user_data
+
+    if "nickname" not in user_data or "ref" not in user_data:
+        st.markdown("### Hi there! Have you used ResiliBot before? (yes/no)")
+        user_choice = st.text_input(">", key="user_check")
+        if user_choice.lower().strip() == "no":
+            nickname = st.text_input("What nickname should I use for you?", key="nickname_input")
+            if nickname:
+                ref = str(uuid.uuid4())[:8]
+                st.session_state.user_data = {
+                    "nickname": nickname,
+                    "ref": ref,
+                    "chat_history": [],
+                    "emotion_log": []
+                }
+                st.success(f"Thanks, {nickname}. Your reference number is: {ref} (save this!)")
+        elif user_choice.lower().strip() == "yes":
+             ref = st.text_input("Enter your reference number:", key="ref_input")
+             if ref:
+                 user_file = f"user_data/{ref}.json"
+                 if os.path.exists(user_file):
+                      with open(user_file) as f:
+                          st.session_state.user_data = json.load(f)
+                      st.success(f"Welcome back, {st.session_state.user_data['nickname']}! Your ref: {ref}")
+                 else:
+                      st.warning("Sorry, that reference number wasn't found. Please try again.")
+                      st.stop()
+
+    return st.session_state.user_data
+
+# --- Initialize Session ---
+user = get_user_session()
+
+# --- UI ---
+st.title("🧠 ResiliBot: Talk. Breathe. Heal.")
+st.caption(f"Welcome, **{user['nickname']}** 🌿")
+
+with st.form("chat_form", clear_on_submit=True):
+    user_input = st.text_input(f"{user['nickname']}:", placeholder="Type your message here...")
+    submitted = st.form_submit_button("Send")
+
+if submitted and user_input:
     emotion, score = detect_emotion(user_input)
-    st.session_state.emotion_log.append((emotion, score))
+    user["emotion_log"].append({"emotion": emotion, "score": score})
 
     inp_clean = user_input.lower().strip()
     if inp_clean in fallback_tags:
@@ -90,59 +127,39 @@ def chat(user_input):
         else:
             tag = lbl_encoder.inverse_transform([np.argmax(pred)])[0]
 
-    response = random.choice(responses.get(tag, ["I'm here to listen."]))
-    st.session_state.chat_log.append((user_input, response, emotion))
-    return response
+    bot_response = random.choice(responses.get(tag, ["I'm here to listen. Can you say that again?"]))
+    user["chat_history"].append((user_input, bot_response, emotion))
+# Save user session to file after every interaction
+if "user_data" in st.session_state:
+    ref = st.session_state.user_data.get("ref")
+    if ref:
+        with open(f"user_data/{ref}.json", "w") as f:
+            json.dump(st.session_state.user_data, f, indent=2)
 
-def show_mood_chart():
-    if len(st.session_state.emotion_log) < 2:
-        return None, "Not enough data yet for chart."
+# --- Display Chat Log ---
+for user_msg, bot_msg, em in user.get("chat_history", []):
+    st.markdown(f"**{user['nickname']}**: {user_msg}")
+    st.markdown(f" *({em})*")
+    st.markdown(f"**ResiliBot:** {bot_msg}")
+    st.markdown("---")
 
-    scores = [s for _, s in st.session_state.emotion_log]
-    emotions = [e for e, _ in st.session_state.emotion_log]
-    x = list(range(1, len(scores) + 1))
-
-    plt.figure(figsize=(8, 4))
-    plt.plot(x, scores, marker="o", color="blue", label="Sentiment Score")
-    plt.axhline(0, color="gray", linestyle="--")
-    for i, label in enumerate(emotions):
-        plt.text(x[i], scores[i] + 0.05, label, fontsize=8, ha="center")
-    plt.title("Your Emotional Trend")
-    plt.xlabel("Message Count")
-    plt.ylabel("Sentiment Score")
-    plt.ylim(-1, 1)
-    plt.grid(True)
-
-    temp = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-    plt.savefig(temp.name)
-    plt.close()
-
-    return temp.name, "Here's your mood chart!"
-
-# Streamlit App UI
-st.set_page_config(page_title="ResiliBot", page_icon="🧠")
-st.title("🧠 ResiliBot — Your Mental Health Companion")
-st.markdown("Talk to the bot about your feelings. It understands and supports you.")
-
-# Chat interface
-user_input = st.text_input("How are you feeling today?", key="user_input")
-if st.button("Send") and user_input:
-    bot_reply = chat(user_input)
-    st.markdown(f"**ResiliBot says:** {bot_reply}")
-
-# Chat history
-if st.session_state.chat_log:
-    st.markdown("### 💬 Chat History")
-    for user, bot, emo in st.session_state.chat_log:
-        st.markdown(f"**You:** {user}")
-        st.markdown(f"**ResiliBot:** {bot}  \n*Detected emotion: {emo}*")
-
-# Mood chart generation
-if st.button("Generate Mood Chart"):
-    chart_path, msg = show_mood_chart()
-    if chart_path:
-        st.image(chart_path)
-        with open(chart_path, "rb") as f:
-            st.download_button("📥 Download Mood Chart", f, file_name="mood_chart.png")
+# --- Quit & Mood Chart ---
+if st.button("Quit and Show Mood Chart 📊"):
+    if len(user["emotion_log"]) < 2:
+        st.warning("Not enough conversation yet to generate a chart.")
     else:
-        st.warning(msg)
+        scores = [e["score"] for e in user["emotion_log"]]
+        emotions = [e["emotion"] for e in user["emotion_log"]]
+        x = list(range(1, len(scores)+1))
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(x, scores, marker='o', linestyle='-', color='purple')
+        ax.axhline(0, color='gray', linestyle='--')
+        for i, (x_pt, label) in enumerate(zip(x, emotions)):
+            ax.text(x_pt, scores[i] + 0.05, label, ha='center', fontsize=8)
+        ax.set_ylim(-1, 1)
+        ax.set_title(f"{user['nickname']}'s Emotional Trend")
+        ax.set_xlabel("Message Count")
+        ax.set_ylabel("Sentiment Score (-1 to 1)")
+        ax.grid(True)
+        st.pyplot(fig)
