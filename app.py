@@ -12,7 +12,7 @@ from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
 import os
 
-# ✅ Ensure local user_data folder exists before anything
+#  Ensure local user_data folder exists before anything
 os.makedirs("user_data", exist_ok=True)
 
 # --- Setup: Emotion model ---
