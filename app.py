@@ -23,8 +23,8 @@ nltk.download("vader_lexicon")
 sia = SentimentIntensityAnalyzer()
 
 # Load ML components
-#model = load_model("trained_modelrev.h5")
-model = load_model("converted_model.h5")
+model = load_model("trained_modelrev.h5")
+#model = load_model("converted_model.h5")
 
 
 with open("tokenizerrev.json") as f:
