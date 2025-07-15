@@ -12,8 +12,18 @@ from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
 import os
 
-# ✅ Ensure local user_data folder exists before anything
-os.makedirs("user_data", exist_ok=True)
+
+USER_FOLDER = "user_data"
+
+if not os.path.exists(USER_FOLDER):
+    try:
+        os.makedirs(USER_FOLDER)
+    except FileExistsError:
+        pass
+elif not os.path.isdir(USER_FOLDER):
+    os.rename(USER_FOLDER, USER_FOLDER + "_old")
+    os.makedirs(USER_FOLDER)
+
 
 # --- Setup: Emotion model ---
 nltk.download("vader_lexicon")
