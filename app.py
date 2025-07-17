@@ -229,7 +229,7 @@ if submitted and user_input:
             json.dump(safe_user, f, indent=2)
 
 # --- Display Chat Log ---
-for chat in user.get("chat_history", []):
+for i, chat in enumerate(user.get("chat_history", [])):
     st.markdown(f"**{user['nickname']}**: {chat['user_msg']}")
     st.markdown(f" *({chat['emotion']})*")
     st.markdown(f"**ResiliBot:** {chat['bot_msg']}")
