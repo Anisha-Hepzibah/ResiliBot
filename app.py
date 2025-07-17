@@ -240,7 +240,8 @@ for chat in user.get("chat_history", []):
         st.markdown(explanation_text)
 
         # ✅ NEW: Deep LIME Button
-        if st.button(f"🔍 Run Deep Explainability (LIME) for: '{chat['user_msg'][:20]}...'"):
+        if st.button(f"🔍 Run Deep Explainability (LIME) for: '{chat['user_msg'][:20]}...'",key=f"lime_button_{i}"  # ✅ unique key per message):
+
             with st.spinner("Running LIME... please wait ⏳"):
                 lime_results = explain_with_lime(chat['user_msg'])
 
