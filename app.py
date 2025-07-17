@@ -86,9 +86,38 @@ def lime_predict_proba(texts):
     return model.predict(padded)
 
 # --- Helper: Run LIME on a single message ---
-def explain_with_lime(user_text):
-    exp = explainer.explain_instance(user_text, lime_predict_proba, num_features=5)
-    return exp.as_list()
+from lime.lime_text import LimeTextExplainer
+
+def explain_with_lime(user_text, num_features=5):
+    """Run LIME explainability for a single user_text."""
+
+    # 1️ Prediction wrapper for LIME
+    def predictor(texts):
+        seqs = tokenizer.texts_to_sequences(texts)
+        padded = pad_sequences(seqs, maxlen=max_len, padding=padding_type, truncating=padding_type)
+        return model.predict(padded)
+
+    # 2️ Improved LimeTextExplainer for short healthcare text
+    explainer = LimeTextExplainer(
+        class_names=list(lbl_encoder.classes_),   # all intent classes
+        bow=False,                               # preserve sequence context
+        split_expression=r"\W+",                 # split words properly
+        kernel_width=5                           # makes LIME more sensitive
+    )
+
+    # 3️ Get explanation for the top predicted class
+    exp = explainer.explain_instance(
+        user_text,
+        predictor,
+        num_features=num_features,
+        top_labels=1
+    )
+
+    # 4️ Get the top predicted label
+    top_label = exp.top_labels[0]
+
+    # 5️ Return feature weights for that label
+    return exp.as_list(label=top_label)
 
 # --- Helper: Generate explanation text ---
 def generate_explanation(top3_conf, impactful_words):
