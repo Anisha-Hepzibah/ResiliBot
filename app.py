@@ -88,6 +88,20 @@ def generate_explanation(top3_conf, impactful_words):
         )
     exp.append(" *Based on these signals, I selected a supportive response for you.*")
     return "\n".join(exp)
+def make_json_safe(obj):
+    """Recursively convert NumPy / tuple / non-JSON types to plain Python types."""
+    if isinstance(obj, dict):
+        return {k: make_json_safe(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [make_json_safe(v) for v in obj]
+    elif isinstance(obj, tuple):
+        return [make_json_safe(v) for v in obj]  # convert tuple -> list
+    elif isinstance(obj, (np.float32, np.float64)):
+        return float(obj)
+    elif isinstance(obj, (np.int32, np.int64)):
+        return int(obj)
+    else:
+        return obj
 
 # --- User Session Setup ---
 def get_user_session():
@@ -192,10 +206,12 @@ if submitted and user_input:
         "impactful_words": impactful_words
     })
 
-    # Save after every message safely
-    if "ref" in user:
-        with open(f"user_data/{user['ref']}.json", "w") as f:
-            json.dump(user, f, indent=2)
+    #  Make the entire user object JSON-safe before saving
+     safe_user = make_json_safe(user)
+       if "ref" in user:
+           with open(f"user_data/{user['ref']}.json", "w") as f:
+           json.dump(safe_user, f, indent=2)
+
 
 # --- Display Chat Log with Explainability ---
 for chat in user.get("chat_history", []):
