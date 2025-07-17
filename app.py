@@ -86,7 +86,7 @@ def generate_explanation(top3_conf, impactful_words):
         exp.append(
             f"**Impactful words** that influenced my response: {', '.join(impactful_words)}"
         )
-    exp.append(" *Based on these signals, I selected a supportive response for you.*")
+    exp.append("💡 *Based on these signals, I selected a supportive response for you.*")
     return "\n".join(exp)
 
 # --- User Session Setup ---
@@ -170,27 +170,29 @@ if submitted and user_input:
             tag = "unclear_input"
         else:
             tag = sorted_conf[0][0]
-            top3_conf = [(intent, round(score*100, 2)) for intent, score in sorted_conf[:3]]
+            top3_conf = [
+                [intent, float(round(score*100, 2))] for intent, score in sorted_conf[:3]
+            ]
 
         # Find impactful negative words
         word_scores = {w: sia.polarity_scores(w)["compound"] for w in user_input.split()}
-        impactful_words = [w for w, s in word_scores.items() if s <= -0.2]
+        impactful_words = [str(w) for w, s in word_scores.items() if s <= -0.2]
 
     # Generate bot reply
     bot_response = random.choice(
         responses.get(tag, ["I'm here to listen. Can you say that again?"])
     )
 
-    # Save message with explainability info
+    #  JSON-safe chat record
     user["chat_history"].append({
-        "user_msg": user_input,
-        "bot_msg": bot_response,
-        "emotion": emotion,
-        "top3_conf": top3_conf,
+        "user_msg": str(user_input),
+        "bot_msg": str(bot_response),
+        "emotion": str(emotion),
+        "top3_conf": top3_conf,  # now a list of lists, not tuples
         "impactful_words": impactful_words
     })
 
-    #  Save after every message
+    # Save after every message safely
     if "ref" in user:
         with open(f"user_data/{user['ref']}.json", "w") as f:
             json.dump(user, f, indent=2)
@@ -203,13 +205,13 @@ for chat in user.get("chat_history", []):
 
     #  Expandable explanation
     with st.expander(" Why this response?"):
-        explanation_text = generate_explanation(chat["top3_conf"], chat["impactful_words"])
+        explanation_text = generate_explanation(chat.get("top3_conf", []), chat.get("impactful_words", []))
         st.markdown(explanation_text)
 
     st.markdown("---")
 
 # --- Quit & Mood Chart ---
-if st.button("Quit and Show Mood Chart "):
+if st.button("Quit and Show Mood Chart 📊"):
     if len(user.get("emotion_log", [])) < 2:
         st.warning("Not enough conversation yet to generate a chart.")
     else:
