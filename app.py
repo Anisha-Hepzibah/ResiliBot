@@ -12,6 +12,9 @@ from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
 import os
 
+# ✅ NEW: LIME import
+from lime.lime_text import LimeTextExplainer
+
 USER_FOLDER = "user_data"
 
 if not os.path.exists(USER_FOLDER):
@@ -88,6 +91,7 @@ def generate_explanation(top3_conf, impactful_words):
         )
     exp.append(" *Based on these signals, I selected a supportive response for you.*")
     return "\n".join(exp)
+
 def make_json_safe(obj):
     """Recursively convert NumPy / tuple / non-JSON types to plain Python types."""
     if isinstance(obj, dict):
@@ -102,6 +106,28 @@ def make_json_safe(obj):
         return int(obj)
     else:
         return obj
+
+# ✅ NEW: LIME Explainer Setup
+lime_explainer = LimeTextExplainer(class_names=list(lbl_encoder.classes_))
+
+def explain_with_lime(user_text):
+    """Run LIME on the given text and return top words with contributions."""
+    def predict_proba(texts):
+        seqs = tokenizer.texts_to_sequences(texts)
+        padded = pad_sequences(seqs, maxlen=max_len, padding=padding_type, truncating=padding_type)
+        return model.predict(padded)
+    
+    # Explain the current prediction
+    pred_probs = predict_proba([user_text])[0]
+    label_idx = int(np.argmax(pred_probs))
+
+    exp = lime_explainer.explain_instance(
+        user_text,
+        predict_proba,
+        num_features=5,
+        labels=[label_idx]
+    )
+    return exp.as_list(label=label_idx)
 
 # --- User Session Setup ---
 def get_user_session():
@@ -124,7 +150,6 @@ def get_user_session():
                     "chat_history": [],
                     "emotion_log": []
                 }
-                #  Save immediately
                 with open(f"user_data/{ref}.json", "w") as f:
                     json.dump(st.session_state.user_data, f, indent=2)
                 st.success(f"Thanks, {nickname}. Your reference number is: {ref} (save this!)")
@@ -202,16 +227,14 @@ if submitted and user_input:
         "user_msg": str(user_input),
         "bot_msg": str(bot_response),
         "emotion": str(emotion),
-        "top3_conf": top3_conf,  # now a list of lists, not tuples
+        "top3_conf": top3_conf,
         "impactful_words": impactful_words
     })
 
-    #  Make the entire user object JSON-safe before saving
     safe_user = make_json_safe(user)
     if "ref" in user:
-      with open(f"user_data/{user['ref']}.json", "w") as f:
-           json.dump(safe_user, f, indent=2)
-
+        with open(f"user_data/{user['ref']}.json", "w") as f:
+            json.dump(safe_user, f, indent=2)
 
 # --- Display Chat Log with Explainability ---
 for chat in user.get("chat_history", []):
@@ -219,10 +242,18 @@ for chat in user.get("chat_history", []):
     st.markdown(f" *({chat['emotion']})*")
     st.markdown(f"**ResiliBot:** {chat['bot_msg']}")
 
-    #  Expandable explanation
-    with st.expander(" Why this response?"):
+    # Lightweight Explanation
+    with st.expander("💡 Why this response?"):
         explanation_text = generate_explanation(chat.get("top3_conf", []), chat.get("impactful_words", []))
         st.markdown(explanation_text)
+
+        # ✅ NEW: Deep LIME Button
+        if st.button(f"🔍 Run Deep Explainability (LIME) for: '{chat['user_msg'][:20]}...'"):
+            with st.spinner("Running LIME... please wait ⏳"):
+                lime_results = explain_with_lime(chat['user_msg'])
+                st.write("**Top words influencing this prediction:**")
+                for w, weight in lime_results:
+                    st.write(f"- **{w}** → {round(weight, 3)}")
 
     st.markdown("---")
 
