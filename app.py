@@ -209,7 +209,7 @@ if submitted and user_input:
     #  Make the entire user object JSON-safe before saving
     safe_user = make_json_safe(user)
     if "ref" in user:
-           with open(f"user_data/{user['ref']}.json", "w") as f:
+      with open(f"user_data/{user['ref']}.json", "w") as f:
            json.dump(safe_user, f, indent=2)
 
 
