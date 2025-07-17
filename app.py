@@ -86,7 +86,7 @@ def generate_explanation(top3_conf, impactful_words):
         exp.append(
             f"**Impactful words** that influenced my response: {', '.join(impactful_words)}"
         )
-    exp.append("💡 *Based on these signals, I selected a supportive response for you.*")
+    exp.append(" *Based on these signals, I selected a supportive response for you.*")
     return "\n".join(exp)
 
 # --- User Session Setup ---
