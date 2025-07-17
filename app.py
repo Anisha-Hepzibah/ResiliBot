@@ -185,7 +185,7 @@ if submitted and user_input:
         else:
             tag = sorted_conf[0][0]
             top3_conf = [
-                [intent, float(round(score*100, 2))] for intent, score in sorted_conf[:3]
+                [intent, round(float(score*100, 2))] for intent, score in sorted_conf[:3]
             ]
 
         # Find impactful negative words
