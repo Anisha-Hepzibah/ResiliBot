@@ -239,8 +239,8 @@ for chat in user.get("chat_history", []):
         explanation_text = generate_explanation(chat.get("top3_conf", []), chat.get("impactful_words", []))
         st.markdown(explanation_text)
 
-        # ✅ NEW: Deep LIME Button
-        if st.button(f"🔍 Run Deep Explainability (LIME) for: '{chat['user_msg'][:20]}...'",key=f"lime_button_{i}"  # ✅ unique key per message):
+        #  NEW: Deep LIME Button
+        if st.button(f"🔍 Run Deep Explainability (LIME) for: '{chat['user_msg'][:20]}...'",key=f"lime_button_{i}"):
 
             with st.spinner("Running LIME... please wait ⏳"):
                 lime_results = explain_with_lime(chat['user_msg'])
@@ -248,12 +248,12 @@ for chat in user.get("chat_history", []):
                 # Sort for better visualization
                 lime_results_sorted = sorted(lime_results, key=lambda x: abs(x[1]), reverse=True)
 
-                # 1️⃣ Textual Explanation
+                # 1️.Textual Explanation
                 st.subheader("Top words influencing this prediction:")
                 for w, weight in lime_results_sorted:
                     st.write(f"- **{w}** → {round(weight, 3)}")
 
-                # 2️⃣ Colored Horizontal Bar Chart
+                # 2️.Colored Horizontal Bar Chart
                 st.subheader("Contribution visualization")
                 words = [w for w, _ in lime_results_sorted]
                 weights = [w_val for _, w_val in lime_results_sorted]
@@ -266,7 +266,7 @@ for chat in user.get("chat_history", []):
                 plt.tight_layout()
                 st.pyplot(fig)
 
-                # 3️⃣ Highlighted Sentence
+                # 3️. Highlighted Sentence
                 st.subheader("Highlighted sentence")
                 highlighted_sentence = []
                 word_dict = {w: val for w, val in lime_results}
