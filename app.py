@@ -12,7 +12,7 @@ from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
 import os
 
-# ✅ LIME
+#  LIME
 from lime.lime_text import LimeTextExplainer
 
 USER_FOLDER = "user_data"
